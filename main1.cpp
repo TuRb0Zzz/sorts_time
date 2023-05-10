@@ -16,10 +16,10 @@ class DataBase{
             request_insert_create("CREATE TABLE IF NOT EXISTS  SizeArs(id INTEGER primary key AUTOINCREMENT,sizeAr INTEGER);");
         }
         void CreateResSortsTable(){
-            request_insert_create("CREATE TABLE IF NOT EXISTS  ResSorts(id INTEGER primary key AUTOINCREMENT,idSort integer,dursort_ms integer, idsizeAr integer,FOREIGN KEY(idSort) REFERENCES Sorts(id) on UPDATE CASCADE on DELETE CASCADE,FOREIGN KEY( idsizeAr) REFERENCES SizeArs(id) on UPDATE CASCADE on DELETE CASCADE);");
+            request_insert_create("CREATE TABLE IF NOT EXISTS  ResSorts(id INTEGER primary key AUTOINCREMENT,idSort integer,dursort_ms double, idsizeAr integer,FOREIGN KEY(idSort) REFERENCES Sorts(id) on UPDATE CASCADE on DELETE CASCADE,FOREIGN KEY( idsizeAr) REFERENCES SizeArs(id) on UPDATE CASCADE on DELETE CASCADE);");
         }
 
-		sqlite3 *bd;
+	sqlite3 *bd;
     public:
         DataBase(){
             openBd("BigDataBase");
@@ -28,6 +28,10 @@ class DataBase{
             CreateResSortsTable();
         }
         DataBase(const char* bd_name) {
+       	    openBd(bd_name);
+            CreateSortsTable();
+            CreateTimeSortsTable();
+            CreateResSortsTable();
 
         }
 	~DataBase(){
@@ -36,10 +40,7 @@ class DataBase{
 	 }
         bool openBd(const char* bdName) {
             int status = sqlite3_open(bdName, &bd);
-#ifdef DBG
             assert(status == SQLITE_OK);
-#endif
-
             return status;
         }
         bool closeBd() {
@@ -83,7 +84,6 @@ void sorts(void (*sortName)(int*, int), int* ar, int size) {
 
 int main(int argc, char **argv){
 	int flags[6]={-1,-1,-1,-1,-1,-1};
-	int sortsType = 0;
 	std::string insert_stmt;
 	int step = 100;
 	int maxsize=1000;
@@ -133,25 +133,26 @@ int main(int argc, char **argv){
 	for(int mas=0;mas<6;mas++){
 		cout<< flags[mas]<< " ";
 	}
-	/*
-	base->openBd("BigDataBase\0");
         std::chrono::time_point<std::chrono::high_resolution_clock> start;
         std::chrono::time_point<std::chrono::high_resolution_clock> end;
         chrono::duration<double> diff;
         for(int arsize = step; arsize <= maxsize; arsize += step){
             int* ar = new int[arsize];
             randomFilling(ar , arsize ,0 , 999);
-            start = chrono::high_resolution_clock::now();
-            sorts(sortsFunc[5], ar, arsize);
-            end = chrono::high_resolution_clock::now();
-            base->request_insert_create("INSERT INTO Sorts(nameSort) VALUES('bubblesort');");
-            insert_stmt = "INSERT INTO SizeArs(sizeAr) VALUES("s + std::to_string(arsize) + ");";
-            base->request_insert_create(insert_stmt.c_str());
-            insert_stmt = "INSERT INTO ResSorts(dursort_ms) VALUES("s + std::to_string(diff.count()) + ");";
-            base->request_insert_create(insert_stmt.c_str());
+	    for(int SortsType=0;SortsType<6;SortsType++){
+	    	if (flags[SortsType]!=-1){
+            		start = chrono::high_resolution_clock::now();
+            		sorts(sortsFunc[flags[SortsType]], ar, arsize);
+            		end = chrono::high_resolution_clock::now();
+            		base->request_insert_create("INSERT INTO Sorts(nameSort) VALUES(123);");
+            		insert_stmt = "INSERT INTO SizeArs(sizeAr) VALUES("s + std::to_string(arsize) + ");";
+            		base->request_insert_create(insert_stmt.c_str());
+            		insert_stmt = "INSERT INTO ResSorts(dursort_ms) VALUES("s + std::to_string(diff.count()) + ");";
+            		base->request_insert_create(insert_stmt.c_str());
+            }
+            }
             delete[]  ar;
             }		    
 	delete base;
-	*/
 	return 0;
 }
