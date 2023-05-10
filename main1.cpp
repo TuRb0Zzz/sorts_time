@@ -22,13 +22,14 @@ class DataBase{
 		sqlite3 *bd;
     public:
         DataBase(){
-			openBd("BigDataBase");
+            openBd("BigDataBase");
             CreateSortsTable();
             CreateTimeSortsTable();
             CreateResSortsTable();
-		//	closeBd();
         }
-		DataBase(const char* bd_name) {}
+        DataBase(const char* bd_name) {
+
+        }
 	~DataBase(){
 	    closeBd();
 
@@ -54,7 +55,7 @@ class DataBase{
             }
             return er;
         }
-        bool request_select(const char* sqlString, void (*callback)(...)) {
+        bool request_select(const char* sqlString) {
             char* errMsg;
             int er = sqlite3_exec(bd, sqlString, callback, nullptr, &errMsg);
 
@@ -65,9 +66,6 @@ class DataBase{
             return er;
         }
         static int callback(void* outputStruct, int countRec, char** argv, char** colName) {
-            //void* -- c-style
-			LL *temp = static_cast<LL*>(outputStruct);
-            //outputStructure allow to return back the data for processing....
             for (int i = 0; i < countRec; i++) {
                 std::cout << "\t" << colName[i] << " '" << argv[i] << "'";
             }
@@ -76,38 +74,15 @@ class DataBase{
         }
 };
 
+void (*sortsFunc[6])(int*, int) = {bubbleSort, selectionSort, countsort, quickSort, insertionSort, mergeSort};
 
-class BD {
-
-	public :
-		virtual ~BD() = 0;
-};
-
-class SortsBd : public BD {
-
-	public :
-		static int callBack();
-		LL* getSortsBySize(....);
-};
-
-
-#define BUBBLE	1
-#define QUICK	2
-
-enum NameFlags{
-	BubbleSort = 0,
-	QuckSorts,
-
-};
-void (*sortsFunc[6])(int*, int) = {bubbleSort, quickSort....};
-
-void sorts(void (*sortName)(unsigned int*, int), unsigned int* ar, int size) {
-
+void sorts(void (*sortName)(int*, int), int* ar, int size) {
+    sortName(ar,size);
 }
 
 
 int main(int argc, char **argv){
-	bool flags[6]={0,0,0,0,0,0};	//ВСЯ суть работы!!!
+	int flags[6]={-1,-1,-1,-1,-1,-1};
 	int sortsType = 0;
 	std::string insert_stmt;
 	int step = 100;
@@ -117,7 +92,9 @@ int main(int argc, char **argv){
 	if (argc > 1) {
 		for(int i=1;i<argc;i++){
 			if (std::string(argv[i])=="--meas"){
-				flags[BubbleSorts]=0,flags[1]=0,flags[2]=0,flags[3]=0,flags[4]=0,flags[5]=0;
+                                for(int one=0;one<6;one++){
+                                	flags[one]=one;
+                                }
 			}
 			else if(std::string(argv[i])=="--size"){
 				maxsize = atoi(argv[i+1]);
@@ -126,132 +103,55 @@ int main(int argc, char **argv){
 				step =atoi( argv[i+1]);
 			}
 			else if(std::string(argv[i]) =="--sorts"){
-				for (int k = i; k < ....; k++) {
-
-					if (std::string(argv[i+1])=="bubble"){
-						flags[k-i]=1;
+				for(int j=1;j+i<argc;j++){
+                                	if (std::string(argv[i+j])=="bubble"){
+                                        	flags[j-1]=0;
+	                              	}
+					else if(std::string(argv[i+j])=="selection"){
+				 		flags[j-1]=1;
 					}
-				else if(std::string(argv[i+1])=="selection"){
-				 	flags[1]=1;
-				}
-				else if(std::string(argv[i+1])=="count"){
-					flags[0]=0,flags[1]=0,flags[2]=1,flags[3]=0,flags[4]=0,flags[5]=0;
-				}
-				else if(std::string(argv[i+1])=="quick"){
-					flags[0]=0,flags[1]=0,flags[2]=0,flags[3]=1,flags[4]=0,flags[5]=0;
-				}
-				else if(std::string(argv[i+1])=="insertion"){
-					flags[0]=0,flags[1]=0,flags[2]=0,flags[3]=0,flags[4]=1,flags[5]=0;
-				}
-				else if(std::string(argv[i+1])=="merge"){
-					flags[0]=0,flags[1]=0,flags[2]=0,flags[3]=0,flags[4]=0,flags[5]=1;
-				}
+					else if(std::string(argv[i+j])=="count"){
+						flags[j-1]=2;
+					}
+					else if(std::string(argv[i+j])=="quick"){
+						flags[j-1]=3;
+					}
+					else if(std::string(argv[i+j])=="insertion"){
+						flags[j-1]=4;
+					}
+					else if(std::string(argv[i+j])=="merge"){
+						flags[j-1]=5;
+					}
 			}
-
-	}
-			if (flags[0] == 0) {
-				for (int i = 0; i < 6; i++) {
-					flags[i] = i+1;
-				}
-			}
-	}
+                        }
+        }
+        }
 	else{
 		cerr<<"No input argiments!"<<endl;
 		exit(1);
 	}
+	for(int mas=0;mas<6;mas++){
+		cout<< flags[mas]<< " ";
+	}
+	/*
 	base->openBd("BigDataBase\0");
-
-            std::chrono::time_point<std::chrono::high_resolution_clock> start;
-            std::chrono::time_point<std::chrono::high_resolution_clock> end;
-            chrono::duration<double> diff;
+        std::chrono::time_point<std::chrono::high_resolution_clock> start;
+        std::chrono::time_point<std::chrono::high_resolution_clock> end;
+        chrono::duration<double> diff;
         for(int arsize = step; arsize <= maxsize; arsize += step){
             int* ar = new int[arsize];
             randomFilling(ar , arsize ,0 , 999);
-                    start = chrono::high_resolution_clock::now();
-			sorts(sortsFunc[flags[i]], ar, 999);
-                    end = chrono::high_resolution_clock::now();
-
-
-					std::map<int /*id sort in bs*/, std::string /*sort name*/> nameSortsToInt = {{1, "bubbleSort"}, {2, ..}};
-					sprintf("insert into Sorts(nameSort
-
-			sprintf(...)
-		    base->request_insert_create("INSERT INTO Sorts(nameSort) VALUES('bubblesort');");
-		    insert_stmt = "INSERT INTO SizeArs(sizeAr) VALUES("s + std::to_string(arsize) + ");";
-		    base->request_insert_create(insert_stmt.c_str());
-		    insert_stmt = "INSERT INTO ResSorts(dursort_ms) VALUES("s + std::to_string(diff.count()) + ");";
-		    base->request_insert_create(insert_stmt.c_str());
-            }		    
- 
-            if ( flags[1]){
-                start = chrono::high_resolution_clock::now();
-                selectionSort(ar,arsize);
-                end = chrono::high_resolution_clock::now();
-                diff = end - start;
-		base->request_insert_create("INSERT INTO Sorts(nameSort) VALUES('selectionsort');");
-		insert_stmt = "INSERT INTO SizeArs(sizeAr) VALUES("s + std::to_string(arsize) + ");";
-		base->request_insert_create(insert_stmt.c_str());
-		insert_stmt = "INSERT INTO ResSorts(dursort_ms) VALUES("s + std::to_string(diff.count()) + ");";
-		base->request_insert_create(insert_stmt.c_str());
-            }
-
-            if ( flags[2] ){
-                start = chrono::high_resolution_clock::now();
-                countsort(ar,arsize);
-                end = chrono::high_resolution_clock::now();
-                diff = end - start;
-		base->request_insert_create("INSERT INTO Sorts(nameSort) VALUES('countsort');");
-		base->_
-		insert_stmt = "INSERT INTO SizeArs(sizeAr) VALUES("s + std::to_string(arsize) + ");";
-		base->request_insert_create(insert_stmt.c_str());
-		insert_stmt = "INSERT INTO ResSorts(dursort_ms) VALUES("s + std::to_string(diff.count()) + ");";
-		base->request_insert_create(insert_stmt.c_str());
-            }
-
-            if ( flags[3] ){
-                start = chrono::high_resolution_clock::now();
-                quickSort(ar,arsize);
-                end = chrono::high_resolution_clock::now();
-                diff = end - start;
-		base->request_insert_create("INSERT INTO Sorts(nameSort) VALUES('quicksort');");
-		insert_stmt = "INSERT INTO SizeArs(sizeAr) VALUES("s + std::to_string(arsize) + ");";
-		base->request_insert_create(insert_stmt.c_str());
-		insert_stmt = "INSERT INTO ResSorts(dursort_ms) VALUES("s + std::to_string(diff.count()) + ");";
-		base->request_insert_create(insert_stmt.c_str());
-	   }
-
-            if ( flags[4] ){
-                start = chrono::high_resolution_clock::now();
-
-                insertionSort(ar,arsize);
-
-                end = chrono::high_resolution_clock::now();
-                diff = end - start;
-		base->request_insert_create("INSERT INTO Sorts(nameSort) VALUES('insertionsort');");
-		insert_stmt = "INSERT INTO SizeArs(sizeAr) VALUES("s + std::to_string(arsize) + ");";
-		base->request_insert_create(insert_stmt.c_str());
-		insert_stmt = "INSERT INTO ResSorts(dursort_ms) VALUES("s + std::to_string(diff.count()) + ");";
-		base->request_insert_create(insert_stmt.c_str());
-	    }
-
-            if ( flags[5] ){
-                start = chrono::high_resolution_clock::now();
-
-                mergeSort(ar,arsize);
-
-                end = chrono::high_resolution_clock::now();
-                diff = end - start;
-		base->request_insert_create("INSERT INTO Sorts(nameSort) VALUES('mergesort');");
-		insert_stmt = "INSERT INTO SizeArs(sizeAr) VALUES("s + std::to_string(arsize) + ");";
-		base->request_insert_create(insert_stmt.c_str());
-		insert_stmt = "INSERT INTO ResSorts(dursort_ms) VALUES("s + std::to_string(diff.count()) + ");";
-		base->request_insert_create(insert_stmt.c_str());
-	    }
+            start = chrono::high_resolution_clock::now();
+            sorts(sortsFunc[5], ar, arsize);
+            end = chrono::high_resolution_clock::now();
+            base->request_insert_create("INSERT INTO Sorts(nameSort) VALUES('bubblesort');");
+            insert_stmt = "INSERT INTO SizeArs(sizeAr) VALUES("s + std::to_string(arsize) + ");";
+            base->request_insert_create(insert_stmt.c_str());
+            insert_stmt = "INSERT INTO ResSorts(dursort_ms) VALUES("s + std::to_string(diff.count()) + ");";
+            base->request_insert_create(insert_stmt.c_str());
             delete[]  ar;
-            }
+            }		    
 	delete base;
+	*/
 	return 0;
-
-
-
 }
