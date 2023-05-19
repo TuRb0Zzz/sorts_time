@@ -1,6 +1,9 @@
 #include <iostream>
 #include <cstring>
 #include "sqlite3.h"
+
+
+
 using namespace std;
 
 #ifndef SORTS_H
@@ -12,7 +15,7 @@ void selectionSort(int* ar, int size);//4
 void countsort(int *ar, int size);//5
 void quickSort(int* ar, int size);//6
 void sorts(void (*sortName)(int*, int), int* ar, int size);
-void checkkeys(int argc, char **argv, int* flags,int& maxsize, int& step);
+
 class DataBase{
     private:	
         void CreateSortsTable();
@@ -30,4 +33,5 @@ class DataBase{
         static int callbackId(void* outputStruct, int countRec, char** argv, char** colName);
         bool SelectidFromArsize(int arsize, int &id);
 };
+void checkkeys(int argc, char **argv, int* flags,int& maxsize, int& step);
 #endif
