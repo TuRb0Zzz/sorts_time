@@ -1,7 +1,7 @@
 #include <iostream>
 #include "arraywork.h"
 #include "sorts.h"
-
+#include "sqlite3.h"
 using namespace std;
 
 void insertionSort(int* ar,int size){
@@ -158,8 +158,119 @@ void countsort(int *ar, int size){
 	}
 }
 
+void checkkeys(int argc, char **argv, int* flags,int& maxsize, int& step){
+            if (argc > 1) {
+                    for(int i=1;i<argc;i++){
+                            if (std::string(argv[i])=="--meas"){
+                                    for(int one=0;one<6;one++){
+                                            flags[one]=one;
+                                    }
+                            }
+                            else if(std::string(argv[i])=="--size"){
+                                    maxsize = atoi(argv[i+1]);
+                            }
+                            else if(std::string(argv[i])=="--steps"){
+                                    step =atoi( argv[i+1]);
+                            }
+                            else if(std::string(argv[i]) =="--sorts"){
+                                    for(int j=1;j+i<argc;j++){
+                                            if (std::string(argv[i+j])=="bubble"){
+                                                    flags[j-1]=0;
+                                            }
+                                            else if(std::string(argv[i+j])=="selection"){
+                                                    flags[j-1]=1;
+                                            }
+                                            else if(std::string(argv[i+j])=="count"){
+                                                    flags[j-1]=2;
+                                            }
+                                            else if(std::string(argv[i+j])=="quick"){
+                                                    flags[j-1]=3;
+                                            }
+                                            else if(std::string(argv[i+j])=="insertion"){
+                                                    flags[j-1]=4;
+                                            }
+                                            else if(std::string(argv[i+j])=="merge"){
+                                                    flags[j-1]=5;
+                                            }
+                            }
+                            }
+            }
+            if (maxsize!=step and step==1000){
+            	step = maxsize;
+            }
+            }
+            else{
+                    cerr<<"No input argiments!"<<endl;
+                    exit(1);
+            }
+        }
+	
+        void DataBase::CreateSortsTable(){
+            request_insert_create("CREATE TABLE IF NOT EXISTS  Sorts(id INTEGER primary key AUTOINCREMENT,nameSort varchar(32));");
+            request_insert_create("INSERT or REPLACE INTO Sorts(id,nameSort) VALUES(0,'bubbleSort'),(1,'selectionSort'),(2, 'countsort'),(3, 'quickSort'),(4, 'insertionSort'),(5, 'mergeSort');");
+        }
+        void DataBase::CreateTimeSortsTable(){
+            request_insert_create("CREATE TABLE IF NOT EXISTS  SizeArs(id INTEGER primary key AUTOINCREMENT,sizeAr INTEGER);");
+        }
+        void DataBase::CreateResSortsTable(){
+            request_insert_create("CREATE TABLE IF NOT EXISTS  ResSorts(id INTEGER primary key AUTOINCREMENT,idSort integer,dursort_ms double, idsizeAr integer,FOREIGN KEY(idSort) REFERENCES Sorts(id) on UPDATE CASCADE on DELETE CASCADE,FOREIGN KEY( idsizeAr) REFERENCES SizeArs(id) on UPDATE CASCADE on DELETE CASCADE);");
+        }
+        DataBase::DataBase(){
+            openBd("BigDataBase");
+            CreateSortsTable();
+            CreateTimeSortsTable();
+            CreateResSortsTable();
+        }
+        DataBase::DataBase(const char* bd_name) {
+       	    openBd(bd_name);
+            CreateSortsTable();
+            CreateTimeSortsTable();
+            CreateResSortsTable();
+        }
+	DataBase::~DataBase(){
+	    closeBd();
+
+	 }
+        bool DataBase::openBd(const char* bdName) {
+            int status = sqlite3_open(bdName, &bd);
+            return status;
+        }
+        bool DataBase::closeBd() {
+            int status = sqlite3_close(bd);
+	    return status;
+        }
+        bool DataBase::request_insert_create(const char* sqlString) {
+            char* errMsg;
+            int er = sqlite3_exec(bd, sqlString, nullptr, nullptr, &errMsg);
+            if (er) {
+                std::cerr << "error request " << sqlString << " : " << errMsg << std::endl;
+            }
+            return er;
+        }
+        bool DataBase::request_select(const char* sqlString, int (*callback)(void*,int,char**,char**), void* outS) {
+            char* errMsg;
+            int er = sqlite3_exec(bd, sqlString, callback, outS, &errMsg);
+            if (er != SQLITE_OK) {
+                std::cerr << "error request " << sqlString << " : " << errMsg << std::endl;
+                return er;
+            }
+            return er;
+        }
+
+	bool DataBase::SelectidFromArsize(int arsize, int& id){
+		id = 0;
+		std::string sqlString = "SELECT id from SizeArs WHERE sizeAr = " + to_string(arsize);
+		return request_select(sqlString.c_str(), callbackId, &id);
+	}
 
 
+        int DataBase::callbackId(void* outputStruct, int countRec, char** argv, char** colName) {
+		int* temp = (int*)outputStruct;
+		if (*temp == 0)
+			*temp = atoi(argv[0]);
+            return 0;
+        }
+        
 
 
 
