@@ -5,6 +5,8 @@
 #include "sqlite3.h"
 #include <cassert>
 
+
+// я умный и крутой блеблеблеблебле
 using namespace std;
 
 void (*sortsFunc[6])(int*, int) = {bubbleSort, selectionSort, countsort, quickSort, insertionSort, mergeSort};
